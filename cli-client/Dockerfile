@@ -27,4 +27,4 @@ RUN pip install opencv-python
 
 ADD janus.py /
 #EXPOSE 3333
-CMD [ "python", "./janus.py", "http://3.128.120.64/janus"]
+CMD [ "python3", "./janus.py", "http://localhost:8088/janus"]
