@@ -1,0 +1,9 @@
+FROM python:3.10-buster
+#RUN apt-get install -y libavdevice-dev libavfilter-dev libopus-dev libvpx-dev pkg-config libsrtp2-dev
+RUN wget https://github.com/cisco/libsrtp/archive/refs/tags/v2.4.2.tar.gz && 
+ADD janus.py /
+RUN pip install aiohttp 
+RUN pip install aiortc
+RUN pip install opencv-python
+#EXPOSE 3333
+CMD [ "python", "./janus.py", "http://3.128.120.64/janus"]
