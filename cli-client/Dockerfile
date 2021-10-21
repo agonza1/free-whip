@@ -1,30 +1,21 @@
-FROM ubuntu:18.04
+FROM python:3.9-buster
 
-# ignore dialogue
-ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update
+RUN apt-get install -y ffmpeg
+RUN apt-get install -y libavdevice-dev libavfilter-dev libopus-dev libvpx-dev pkg-config libsrtp2-dev
 
-# upgrade env
-RUN apt update
-RUN apt upgrade -y
-
-# install python3 and pip
-RUN apt install python3 -y
-RUN apt install python3-pip -y
-RUN apt install python3-dev -y
-RUN pip3 install --upgrade pip
-
-# for aiortc
-RUN apt install libavdevice-dev -y
-RUN apt install libavfilter-dev -y
-RUN apt install libopus-dev -y
-RUN apt install libvpx-dev -y
-RUN apt install pkg-config -y
-RUN apt install libopencv-dev -y
-# python modules
-RUN pip install aiortc
+# Install python
 RUN pip install aiohttp
+RUN pip install aiortc
 RUN pip install opencv-python
+RUN pip install ffmpeg-python
 
-ADD janus.py /
-#EXPOSE 3333
-CMD [ "python3", "./janus.py", "http://localhost:8088/janus"]
+# Copy files
+RUN mkdir /app
+COPY janus.py /app/
+#COPY folder /app/folder
+
+#EXPOSE 80
+WORKDIR /app
+
+CMD [ "python", "janus.py", "http://localhost:8088/janus"]

@@ -12,7 +12,6 @@ from aiortc.contrib.media import MediaPlayer, MediaRecorder
 
 pcs = set()
 
-
 def transaction_id():
     return "".join(random.choice(string.ascii_letters) for x in range(12))
 
@@ -124,7 +123,7 @@ async def publish(plugin, player):
             "body": request,
             "jsep": {
                 "sdp": pc.localDescription.sdp,
-                "trickle": False,
+                "trickle": True,
                 "type": pc.localDescription.type,
             },
         }
@@ -170,7 +169,7 @@ async def subscribe(session, room, feed, recorder):
             "body": {"request": "start"},
             "jsep": {
                 "sdp": pc.localDescription.sdp,
-                "trickle": False,
+                "trickle": True,
                 "type": pc.localDescription.type,
             },
         }
