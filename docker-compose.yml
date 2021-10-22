@@ -4,4 +4,3 @@ services:
     build:
       context: ./cli-client
       dockerfile: ./Dockerfile
-    restart: always

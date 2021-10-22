@@ -18,4 +18,4 @@ COPY janus.py /app/
 #EXPOSE 80
 WORKDIR /app
 
-CMD [ "python", "janus.py", "http://localhost:8088/janus"]
+CMD [ "python", "janus.py", "http://host.docker.internal:7080"]
