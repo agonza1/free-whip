@@ -1,9 +1,6 @@
 import argparse
 import asyncio
 import logging
-import random
-import string
-import time
 import math
 
 import cv2
@@ -68,10 +65,11 @@ class FlagVideoStreamTrack(VideoStreamTrack):
         return data_bgr    
 
 class JanusSession:
-    def __init__(self, url, room):
+    def __init__(self, url, token, room):
         self._http = None
         self._root_url = url
         self._session_url = None
+        self._token = token
         self._session_room = room
         self._offersdp = None
         self._answersdp = None
@@ -79,7 +77,7 @@ class JanusSession:
     async def createEndpoint(self, offer):
         self._http = aiohttp.ClientSession()
         self._offersdp = offer.sdp
-        headers = {'content-type': 'application/sdp', 'Authorization' : 'Bearer verysecret'}
+        headers = {'content-type': 'application/sdp', 'Authorization' : 'Bearer ' + self._token}
         async with self._http.post(self._root_url + '/whip/endpoint/1234', headers=headers, data=self._offersdp) as response:
             print(response)
             location = response.headers["Location"]
@@ -90,14 +88,14 @@ class JanusSession:
       
     async def trickle(self, data):
         self._http = aiohttp.ClientSession()
-        headers = {'content-type': 'application/trickle-ice-sdpfrag', 'Authorization' : 'Bearer verysecret'}
+        headers = {'content-type': 'application/trickle-ice-sdpfrag', 'Authorization' : 'Bearer +' + self._token}
         async with self._http.patch(self._session_url, headers=headers, data=data) as response:
             print(response)
             data = await response.text()
 
     async def destroy(self):
         if self._session_url:
-            headers = {'Authorization' : 'Bearer verysecret'}
+            headers = {'Authorization' : 'Bearer ' + self._token}
             async with self._http.delete(self._session_url, headers=headers) as response:
                 print(response)
                 assert response.ok == True
@@ -120,6 +118,15 @@ async def publish(session, player):
             credential="turnpassword")]))
 
     pcs.add(pc)
+    pc.addTransceiver("audio", direction="sendonly")
+    pc.addTransceiver("video", direction="sendonly")
+
+    @pc.on("iceconnectionstatechange")
+    async def on_iceconnectionstatechange():
+        print("ICE connection state is", pc.iceConnectionState)
+        if pc.iceConnectionState == "failed":
+            await pc.close()
+            pcs.discard(pc)
 
     # configure media
     media = {"audio": False, "video": True}
@@ -131,7 +138,7 @@ async def publish(session, player):
         pc.addTrack(player.video)
     else:
         pc.addTrack(FlagVideoStreamTrack())
-        #pc.addTrack(VideoStreamTrack())
+        # pc.addTrack(VideoStreamTrack())
 
     # send offer
     offer = await pc.createOffer()
@@ -146,18 +153,25 @@ async def publish(session, player):
             sdp=session._answersdp, type="answer"
         )
     )
+    # aiortc doesn't support trickle ice yet
+    # await session.trickle("")
 
 async def run(player, session):
     # send video
     await publish(session=session, player=player)
     # exchange media for 1 minute
     print("Exchanging media...")
-    await asyncio.sleep(60)
+    await asyncio.sleep(30)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Janus")
-    parser.add_argument("url", help=" WHIP root URL, e.g. http://localhost:7080/whip")
+    parser.add_argument("url", help=" WHIP root URL, e.g. http://localhost:7080/whip"),
+    parser.add_argument(
+        "--token",
+        default="verysecret",
+        help="The bearer token for the endpoint that will provide the resource.",
+    ),
     parser.add_argument(
         "--room",
         type=int,
@@ -172,7 +186,7 @@ if __name__ == "__main__":
         logging.basicConfig(level=logging.DEBUG)
 
     # create signaling and peer connection
-    session = JanusSession(args.url, args.room)
+    session = JanusSession(args.url, args.token, args.room)
 
     # create media source
     if args.play_from:

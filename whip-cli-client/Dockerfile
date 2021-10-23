@@ -12,10 +12,8 @@ RUN pip install ffmpeg-python
 
 # Copy files
 RUN mkdir /app
-COPY janus.py /app/
-#COPY folder /app/folder
+COPY publish.py /app/
 
-#EXPOSE 80
 WORKDIR /app
 
-CMD [ "python", "janus.py", "http://host.docker.internal:7080"]
+CMD [ "python", "publish.py", "http://host.docker.internal:7080"]
