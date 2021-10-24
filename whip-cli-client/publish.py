@@ -64,7 +64,7 @@ class FlagVideoStreamTrack(VideoStreamTrack):
         data_bgr[:, :] = color
         return data_bgr    
 
-class JanusSession:
+class WhipSession:
     def __init__(self, url, token, room):
         self._http = None
         self._root_url = url
@@ -84,7 +84,6 @@ class JanusSession:
             assert isinstance(location, str)
             self._answersdp = await response.text()
             self._session_url = self._root_url + location
-            print(self._session_url)
       
     async def trickle(self, data):
         self._http = aiohttp.ClientSession()
@@ -161,11 +160,11 @@ async def run(player, session):
     await publish(session=session, player=player)
     # exchange media for 1 minute
     print("Exchanging media...")
-    await asyncio.sleep(30)
+    await asyncio.sleep(60)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Janus")
+    parser = argparse.ArgumentParser(description="WHIP cli client for Janus live streaming")
     parser.add_argument("url", help=" WHIP root URL, e.g. http://localhost:7080/whip"),
     parser.add_argument(
         "--token",
@@ -185,8 +184,8 @@ if __name__ == "__main__":
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
-    # create signaling and peer connection
-    session = JanusSession(args.url, args.token, args.room)
+    # HTTP signaling and peer connection
+    session = WhipSession(args.url, args.token, args.room)
 
     # create media source
     if args.play_from:
