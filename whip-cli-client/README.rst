@@ -43,5 +43,3 @@ docker build -t whip-client .
 .. code-block:: console
 
 docker run whip-client
-
-By default it is using a tur

@@ -29,9 +29,7 @@ class WhipSession:
             location = response.headers["Location"]
             assert isinstance(location, str)
             self._answersdp = await response.text()
-            print(self._whip_url)
             host = self._whip_url.split("//")[-1].split("/")[0]
-            print(host)
             self._session_url = "http://" + host + location
       
     async def trickle(self, data):
@@ -115,11 +113,11 @@ async def run(player, session):
     await publish(session=session, player=player)
     # exchange media for 1 minute
     print("Exchanging media...")
-    await asyncio.sleep(30)
+    await asyncio.sleep(60)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="WHIP cli client for Janus live streaming")
+    parser = argparse.ArgumentParser(description="WHIP cli client for live streaming to a WHIP endpoint")
     parser.add_argument("url", help=" WHIP URL, e.g. http://localhost:7080/whip/endpoint/1234"),
     parser.add_argument(
         "--token",

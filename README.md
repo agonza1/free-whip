@@ -6,6 +6,8 @@ This client has been tested with [janus-gateway](https://github.com/meetecho/jan
 Since aiortc doesn't support trickle ice you might need to use ice-lite.
 
 ## Run locally
+If you want to use a specific TURN you can pass it in a .env file like demonstrated in example.env.
+Then just run:
 ```
 docker-compose up --build
 ```
