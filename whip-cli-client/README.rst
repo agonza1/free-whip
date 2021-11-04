@@ -12,7 +12,7 @@ First install the required packages:
 
     $ pip install aiohttp aiortc
 
-When you run the example, it will connect to the WHIP server and publish using the '1234' room:
+When you run the example, it will connect to the WHIP server and publish using the endpoint you pass:
 
 .. code-block:: console
 
@@ -21,13 +21,13 @@ When you run the example, it will connect to the WHIP server and publish using t
 Additional options
 ------------------
 
-If you want to join a different endpoint/room, run:
+If you want to join a different endpoint with a token, run:
 
 .. code-block:: console
 
-   $ python publish.py http://localhost:8088/whip/endpoint/differentroom
+   $ python publish.py --token verysecret http://localhost:8088/whip/endpoint/differentroom
 
-If you want to play a media file instead of sending green video frames and specify your turn server, run:
+And if you want to play a media file instead of sending green video frames and specify your turn server, run:
 
 .. code-block:: console
 
