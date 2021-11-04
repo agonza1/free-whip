@@ -10,12 +10,13 @@ from aiortc.contrib.media import MediaPlayer
 pcs = set()
 
 class WhipSession:
-    def __init__(self, url, token, room):
+    def __init__(self, url, token, turn):
         self._http = None
-        self._root_url = url
+        self._whip_url = url
         self._session_url = None
         self._token = token
-        self._session_room = room
+        self._session_room = self._whip_url.split("/")[-1]
+        self._turn = turn
         self._offersdp = None
         self._answersdp = None
 
@@ -23,12 +24,15 @@ class WhipSession:
         self._http = aiohttp.ClientSession()
         self._offersdp = offer.sdp
         headers = {'content-type': 'application/sdp', 'Authorization' : 'Bearer ' + self._token}
-        async with self._http.post(self._root_url + '/whip/endpoint/' + str(self._session_room), headers=headers, data=self._offersdp) as response:
+        async with self._http.post(self._whip_url, headers=headers, data=self._offersdp) as response:
             print(response)
             location = response.headers["Location"]
             assert isinstance(location, str)
             self._answersdp = await response.text()
-            self._session_url = self._root_url + location
+            print(self._whip_url)
+            host = self._whip_url.split("//")[-1].split("/")[0]
+            print(host)
+            self._session_url = "http://" + host + location
       
     async def trickle(self, data):
         self._http = aiohttp.ClientSession()
@@ -54,12 +58,19 @@ async def publish(session, player):
     """
     Live stream video to the room.
     """
-    pc = RTCPeerConnection(configuration=RTCConfiguration(
-        iceServers=[RTCIceServer(
-            urls=["stun:stun.l.google.com:19302", 
-            "turn:host.docker.internal:3478"], 
-            username="turnuser", 
-            credential="turnpassword")]))
+    if session._turn:
+        turnArr = session._turn.split("@")[0].split(":")
+        turnurl = turnArr[0]+ ":" + turnArr[1] + ":" + turnArr[2]
+        turnuser = session._turn.split("@")[1].split(":")[0]
+        turnpass = session._turn.split("@")[1].split(":")[1]
+        pc = RTCPeerConnection(configuration=RTCConfiguration(
+            iceServers=[RTCIceServer(
+                urls=["stun:stun.l.google.com:19302", turnurl ], 
+                username=turnuser, 
+                credential=turnpass)]))
+    else:
+        pc = RTCPeerConnection(configuration=RTCConfiguration(
+            iceServers=[RTCIceServer("stun:stun.l.google.com:19302")]))
 
     pcs.add(pc)
     pc.addTransceiver("audio", direction="sendonly")
@@ -104,24 +115,19 @@ async def run(player, session):
     await publish(session=session, player=player)
     # exchange media for 1 minute
     print("Exchanging media...")
-    await asyncio.sleep(60)
+    await asyncio.sleep(30)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="WHIP cli client for Janus live streaming")
-    parser.add_argument("url", help=" WHIP root URL, e.g. http://localhost:7080/whip"),
+    parser.add_argument("url", help=" WHIP URL, e.g. http://localhost:7080/whip/endpoint/1234"),
     parser.add_argument(
         "--token",
         default="verysecret",
         help="The bearer token for the endpoint that will provide the resource.",
     ),
-    parser.add_argument(
-        "--room",
-        type=int,
-        default=1234,
-        help="The video room ID to join (default: 1234).",
-    ),
     parser.add_argument("--play-from", help="Read the media from a file and sent it."),
+    parser.add_argument("--turn", help="The turn url that we can optionally pass. The format that it expects is turn:domain:port@user:pass"),
     parser.add_argument("--verbose", "-v", action="count")
     args = parser.parse_args()
 
@@ -129,7 +135,7 @@ if __name__ == "__main__":
         logging.basicConfig(level=logging.DEBUG)
 
     # HTTP signaling and peer connection
-    session = WhipSession(args.url, args.token, args.room)
+    session = WhipSession(args.url, args.token, args.turn)
 
     # create media source
     if args.play_from:

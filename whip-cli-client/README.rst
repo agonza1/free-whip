@@ -16,26 +16,32 @@ When you run the example, it will connect to the WHIP server and publish using t
 
 .. code-block:: console
 
-   $ python publish.py http://localhost:8088/whip
+   $ python publish.py http://localhost:8088/whip/endpoint/1234
 
 Additional options
 ------------------
 
-If you want to join a different room, run:
+If you want to join a different endpoint/room, run:
 
 .. code-block:: console
 
-   $ python publish.py --room 5678 http://localhost:8088/whip
+   $ python publish.py http://localhost:8088/whip/endpoint/differentroom
 
-If you want to play a media file instead of sending green video frames, run:
+If you want to play a media file instead of sending green video frames and specify your turn server, run:
 
 .. code-block:: console
 
-   $ python publish.py --play-from video.mp4 http://localhost:8088/whip
+   $ python publish.py --play-from video.mp4 --turn turn:host:port@turnuser:turnpass http://localhost:8088/whip/endpoint/1234
 
 Running with docker
 ------------------
 
+.. code-block:: console
+
 docker build -t whip-client .
 
+.. code-block:: console
+
 docker run whip-client
+
+By default it is using a tur
