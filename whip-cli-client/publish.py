@@ -15,7 +15,6 @@ class WhipSession:
         self._whip_url = url
         self._session_url = None
         self._token = token
-        self._session_room = self._whip_url.split("/")[-1]
         self._turn = turn
         self._offersdp = None
         self._answersdp = None
