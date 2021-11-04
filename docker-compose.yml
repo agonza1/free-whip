@@ -4,3 +4,4 @@ services:
     build:
       context: ./whip-cli-client
       dockerfile: ./Dockerfile
+    env_file: .env
