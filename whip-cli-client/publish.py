@@ -20,7 +20,7 @@ class WhipSession:
         self._answersdp = None
 
     async def createEndpoint(self, offer):
-        self._http = aiohttp.ClientSession()
+        self._http = aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False))
         self._offersdp = offer.sdp
         headers = {'content-type': 'application/sdp', 'Authorization' : 'Bearer ' + self._token}
         async with self._http.post(self._whip_url, headers=headers, data=self._offersdp) as response:
